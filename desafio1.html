@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafio 1 - Cálculo de Comissões</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-red-50 to-white min-h-screen py-12">
+    <div class="max-w-5xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-red-600 mb-2">Cálculo de Comissões</h1>
+            <p class="text-gray-600">Sistema de análise de vendas e comissões</p>
+        </div>
+
+        
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mb-8 border-t-4 border-red-500">
+            <h2 class="text-xl font-bold text-gray-800 mb-6">Regras de Comissão</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-red-50 p-5 rounded-xl border border-red-200">
+                    <div class="text-sm text-red-600 font-semibold mb-1">Sem Comissão</div>
+                    <div class="text-2xl font-bold text-red-800">R$ 100</div>
+                    <div class="text-xs text-gray-600 mt-1">0% de comissão</div>
+                </div>
+                <div class="bg-red-50 p-5 rounded-xl border border-red-200">
+                    <div class="text-sm text-red-600 font-semibold mb-1">Comissão Básica</div>
+                    <div class="text-2xl font-bold text-red-800">R$ 100 - R$ 499</div>
+                    <div class="text-xs text-gray-600 mt-1">1% de comissão</div>
+                </div>
+                <div class="bg-red-50 p-5 rounded-xl border border-red-200">
+                    <div class="text-sm text-red-600 font-semibold mb-1">Comissão Premium</div>
+                    <div class="text-2xl font-bold text-red-800">≥ R$ 500</div>
+                    <div class="text-xs text-gray-600 mt-1">5% de comissão</div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white rounded-2xl shadow-2xl p-8 border-t-4 border-red-500">
+            <h2 class="text-xl font-bold text-gray-800 mb-6">Performance dos Vendedores</h2>
+            <div id="resultado" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        const dados = {
+            "vendas": [
+                { "vendedor": "João Silva", "valor": 1200.50 },
+                { "vendedor": "João Silva", "valor": 950.75 },
+                { "vendedor": "João Silva", "valor": 1800.00 },
+                { "vendedor": "João Silva", "valor": 1400.30 },
+                { "vendedor": "João Silva", "valor": 1100.90 },
+                { "vendedor": "João Silva", "valor": 1550.00 },
+                { "vendedor": "João Silva", "valor": 1700.80 },
+                { "vendedor": "João Silva", "valor": 250.30 },
+                { "vendedor": "João Silva", "valor": 480.75 },
+                { "vendedor": "João Silva", "valor": 320.40 },
+                { "vendedor": "Maria Souza", "valor": 2100.40 },
+                { "vendedor": "Maria Souza", "valor": 1350.60 },
+                { "vendedor": "Maria Souza", "valor": 950.20 },
+                { "vendedor": "Maria Souza", "valor": 1600.75 },
+                { "vendedor": "Maria Souza", "valor": 1750.00 },
+                { "vendedor": "Maria Souza", "valor": 1450.90 },
+                { "vendedor": "Maria Souza", "valor": 400.50 },
+                { "vendedor": "Maria Souza", "valor": 180.20 },
+                { "vendedor": "Maria Souza", "valor": 90.75 },
+                { "vendedor": "Carlos Oliveira", "valor": 800.50 },
+                { "vendedor": "Carlos Oliveira", "valor": 1200.00 },
+                { "vendedor": "Carlos Oliveira", "valor": 1950.30 },
+                { "vendedor": "Carlos Oliveira", "valor": 1750.80 },
+                { "vendedor": "Carlos Oliveira", "valor": 1300.60 },
+                { "vendedor": "Carlos Oliveira", "valor": 300.40 },
+                { "vendedor": "Carlos Oliveira", "valor": 500.00 },
+                { "vendedor": "Carlos Oliveira", "valor": 125.75 },
+                { "vendedor": "Ana Lima", "valor": 1000.00 },
+                { "vendedor": "Ana Lima", "valor": 1100.50 },
+                { "vendedor": "Ana Lima", "valor": 1250.75 },
+                { "vendedor": "Ana Lima", "valor": 1400.20 },
+                { "vendedor": "Ana Lima", "valor": 1550.90 },
+                { "vendedor": "Ana Lima", "valor": 1650.00 },
+                { "vendedor": "Ana Lima", "valor": 75.30 },
+                { "vendedor": "Ana Lima", "valor": 420.90 },
+                { "vendedor": "Ana Lima", "valor": 315.40 }
+            ]
+        };
+
+        function calcularComissao(valor) {
+            if (valor < 100) {
+                return 0;
+            } else if (valor < 500) {
+                return valor * 0.01;
+            } else {
+                return valor * 0.05;
+            }
+        }
+
+        function processarVendas() {
+            const comissoes = {};
+
+            dados.vendas.forEach(venda => {
+                if (!comissoes[venda.vendedor]) {
+                    comissoes[venda.vendedor] = {
+                        total: 0,
+                        vendas: 0,
+                        totalVendido: 0,
+                        ticketMedio: 0
+                    };
+                }
+
+                const comissao = calcularComissao(venda.valor);
+                comissoes[venda.vendedor].total += comissao;
+                comissoes[venda.vendedor].vendas++;
+                comissoes[venda.vendedor].totalVendido += venda.valor;
+            });
+
+            for (const vendedor in comissoes) {
+                comissoes[vendedor].ticketMedio = comissoes[vendedor].totalVendido / comissoes[vendedor].vendas;
+            }
+
+            return comissoes;
+        }
+
+        function exibirResultados() {
+            const comissoes = processarVendas();
+            const resultado = document.getElementById('resultado');
+            
+            const vendedoresOrdenados = Object.entries(comissoes).sort((a, b) => b[1].total - a[1].total);
+            
+            let html = '';
+
+            vendedoresOrdenados.forEach(([vendedor, dados]) => {
+                html += `
+                    <div class="bg-gradient-to-r from-red-50 to-white p-6 rounded-xl border-l-4 border-red-500 shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div class="flex-1">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-3">${vendedor}</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                                    <div>
+                                        <span class="text-gray-600">Vendas:</span>
+                                        <span class="font-bold text-gray-800 ml-1">${dados.vendas}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-600">Ticket Médio:</span>
+                                        <span class="font-bold text-red-700 ml-1">R$ ${dados.ticketMedio.toFixed(2)}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-600">Total Vendido:</span>
+                                        <span class="font-bold text-red-500 ml-1">R$ ${dados.totalVendido.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-red-600 text-white px-6 py-4 rounded-xl text-center md:min-w-[180px]">
+                                <div class="text-sm font-semibold mb-1">Comissão Total</div>
+                                <div class="text-3xl font-bold">R$ ${dados.total.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            resultado.innerHTML = html;
+        }
+
+        exibirResultados();
+    </script>
+</body>
+</html>

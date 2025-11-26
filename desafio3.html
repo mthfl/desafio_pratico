@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafio 3 - Cálculo de Juros</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-red-50 to-white min-h-screen py-12">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-red-600 mb-2">Calculadora de Juros</h1>
+            <p class="text-gray-600">Cálculo de multa por atraso de pagamento</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-2xl p-8 border-t-4 border-red-500">
+            <div class="bg-gradient-to-r from-red-100 to-red-50 border-l-4 border-red-600 p-6 rounded-lg mb-8">
+                <div class="flex items-center mb-2">
+                    <svg class="w-6 h-6 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="font-bold text-red-800 text-lg">Taxa de Juros: 2,5% ao dia</span>
+                </div>
+                <p class="text-red-700 ml-8">Multa calculada sobre o valor original por dia de atraso</p>
+                <p class="text-red-600 ml-8 mt-1 text-sm">Data de hoje: <strong id="dataHoje"></strong></p>
+            </div>
+
+            <div class="space-y-6 mb-8">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Valor Original (R$)</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3.5 text-gray-500 font-semibold">R$</span>
+                        <input type="text" id="valor" placeholder="0,00" 
+                            class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-red-500 focus:outline-none transition-colors text-lg">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Data de Vencimento</label>
+                    <input type="date" id="dataVencimento" 
+                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-red-500 focus:outline-none transition-colors text-lg">
+                </div>
+
+                <button onclick="calcular()" 
+                    class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-4 px-6 rounded-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
+                    Calcular Juros
+                </button>
+            </div>
+
+            <div id="resultado" class="hidden">
+                <div class="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border-2 border-red-200">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-6 h-6 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                        </svg>
+                        Detalhamento do Cálculo
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                            <span class="text-gray-600">Valor Original</span>
+                            <span class="font-bold text-gray-800 text-lg" id="valorOriginal"></span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                            <span class="text-gray-600">Data de Vencimento</span>
+                            <span class="font-bold text-gray-800" id="dataVenc"></span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                            <span class="text-gray-600">Dias de Atraso</span>
+                            <span class="font-bold text-red-600 text-lg" id="diasAtraso"></span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                            <span class="text-gray-600">Multa Diária (2,5%)</span>
+                            <span class="font-bold text-red-700" id="multaDiaria"></span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                            <span class="text-gray-600">Juros Acumulados</span>
+                            <span class="font-bold text-red-700 text-lg" id="jurosAcumulados"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 bg-gradient-to-r from-red-600 to-red-700 text-white p-6 rounded-xl text-center shadow-xl">
+                        <div class="text-sm font-semibold mb-2 opacity-90">VALOR TOTAL A PAGAR</div>
+                        <div class="text-4xl font-bold">R$ <span id="valorTotal"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const TAXA_JUROS_DIA = 0.025;
+
+        const valorInput = document.getElementById('valor');
+        
+        valorInput.addEventListener('keypress', function(e) {
+            if (e.key < '0' || e.key > '9') {
+                e.preventDefault();
+            }
+        });
+
+        valorInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value === '') {
+                e.target.value = '';
+                return;
+            }
+            
+            value = (parseInt(value) / 100).toFixed(2);
+            
+            value = value.replace('.', ',');
+            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            
+            e.target.value = value;
+        });
+
+        function exibirDataHoje() {
+            const hoje = new Date();
+            document.getElementById('dataHoje').textContent = hoje.toLocaleDateString('pt-BR');
+        }
+
+        function calcular() {
+            const valorInput = document.getElementById('valor').value;
+            const dataVencimentoInput = document.getElementById('dataVencimento').value;
+
+            if (!valorInput || !dataVencimentoInput) {
+                alert('Por favor, preencha todos os campos!');
+                return;
+            }
+
+            const valorLimpo = valorInput.replace(/\./g, '').replace(',', '.');
+            const valorOriginal = parseFloat(valorLimpo);
+            
+            if (isNaN(valorOriginal) || valorOriginal <= 0) {
+                alert('Por favor, digite um valor válido!');
+                return;
+            }
+            const dataVencimento = new Date(dataVencimentoInput + 'T00:00:00');
+            const dataHoje = new Date();
+            dataHoje.setHours(0, 0, 0, 0);
+
+            const diferencaTempo = dataHoje - dataVencimento;
+            const diasAtraso = Math.floor(diferencaTempo / (1000 * 60 * 60 * 24));
+
+            if (diasAtraso <= 0) {
+                alert('A data de vencimento ainda não passou ou é hoje. Não há juros a calcular.');
+                document.getElementById('resultado').classList.add('hidden');
+                return;
+            }
+
+            const multaDiaria = valorOriginal * TAXA_JUROS_DIA;
+            const jurosAcumulados = multaDiaria * diasAtraso;
+            const valorTotal = valorOriginal + jurosAcumulados;
+
+            document.getElementById('valorOriginal').textContent = `R$ ${valorOriginal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('dataVenc').textContent = dataVencimento.toLocaleDateString('pt-BR');
+            document.getElementById('diasAtraso').textContent = `${diasAtraso} ${diasAtraso === 1 ? 'dia' : 'dias'}`;
+            document.getElementById('multaDiaria').textContent = `R$ ${multaDiaria.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('jurosAcumulados').textContent = `R$ ${jurosAcumulados.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('valorTotal').textContent = valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            document.getElementById('resultado').classList.remove('hidden');
+            document.getElementById('resultado').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        exibirDataHoje();
+
+        const hoje = new Date();
+        const umMesAtras = new Date(hoje);
+        umMesAtras.setMonth(umMesAtras.getMonth() - 1);
+        document.getElementById('dataVencimento').value = umMesAtras.toISOString().split('T')[0];
+    </script>
+</body>
+</html>

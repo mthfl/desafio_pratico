@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafio 2 - Movimentação de Estoque</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-red-50 to-white min-h-screen py-12">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-red-600 mb-2">Sistema de Estoque</h1>
+            <p class="text-gray-600">Controle de entrada e saída de produtos</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="bg-white rounded-2xl shadow-2xl p-8 border-t-4 border-red-500">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Nova Movimentação</h2>
+                
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Produto</label>
+                        <select id="produto" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-red-500 focus:outline-none transition-colors">
+                            <option value="">Selecione um produto</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Quantidade</label>
+                        <input type="number" id="quantidade" min="1" placeholder="Digite a quantidade" 
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-red-500 focus:outline-none transition-colors">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
+                        <input type="text" id="descricao" placeholder="Ex: Compra de fornecedor" 
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-red-500 focus:outline-none transition-colors">
+                    </div>
+
+                    <div id="estoqueAtual" class="bg-gradient-to-r from-red-50 to-white p-4 rounded-lg border-l-4 border-red-400 text-gray-700 text-sm">
+                        Selecione um produto para ver o estoque atual
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <button onclick="movimentar('entrada')" 
+                            class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg hover:shadow-xl">
+                            Entrada
+                        </button>
+                        <button onclick="movimentar('saida')" 
+                            class="bg-red-800 hover:bg-red-900 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg hover:shadow-xl">
+                            Saída
+                        </button>
+                    </div>
+
+                    <div id="mensagem"></div>
+                </div>
+            </div>
+
+            
+            <div class="bg-white rounded-2xl shadow-2xl p-8 border-t-4 border-red-500">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Histórico de Movimentações</h2>
+                <div id="historico" class="space-y-3 max-h-[600px] overflow-y-auto pr-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const estoque = {
+            "estoque": [
+                {"codigoProduto": 101, "descricaoProduto": "Caneta Azul", "estoque": 150},
+                {"codigoProduto": 102, "descricaoProduto": "Caderno Universitário", "estoque": 75},
+                {"codigoProduto": 103, "descricaoProduto": "Borracha Branca", "estoque": 200},
+                {"codigoProduto": 104, "descricaoProduto": "Lápis Preto HB", "estoque": 320},
+                {"codigoProduto": 105, "descricaoProduto": "Marcador de Texto Amarelo", "estoque": 90}
+            ]
+        };
+
+        let movimentacoes = [];
+        let proximoId = 1;
+
+        function carregarProdutos() {
+            const select = document.getElementById('produto');
+            estoque.estoque.forEach(produto => {
+                const option = document.createElement('option');
+                option.value = produto.codigoProduto;
+                option.textContent = `${produto.codigoProduto} - ${produto.descricaoProduto}`;
+                select.appendChild(option);
+            });
+        }
+
+        function atualizarEstoqueAtual() {
+            const codigoProduto = parseInt(document.getElementById('produto').value);
+            const estoqueDiv = document.getElementById('estoqueAtual');
+            
+            if (!codigoProduto) {
+                estoqueDiv.innerHTML = 'Selecione um produto para ver o estoque atual';
+                estoqueDiv.className = 'bg-gradient-to-r from-red-50 to-white p-4 rounded-lg border-l-4 border-red-400 text-gray-700 text-sm';
+                return;
+            }
+
+            const produto = estoque.estoque.find(p => p.codigoProduto === codigoProduto);
+            if (produto) {
+                estoqueDiv.innerHTML = `<div class="flex justify-between items-center"><span class="font-semibold">Estoque Atual:</span><span class="text-xl font-bold text-red-600">${produto.estoque} unidades</span></div>`;
+                estoqueDiv.className = 'bg-gradient-to-r from-red-50 to-white p-4 rounded-lg border-l-4 border-red-500 text-sm';
+            }
+        }
+
+        function movimentar(tipo) {
+            const codigoProduto = parseInt(document.getElementById('produto').value);
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const descricao = document.getElementById('descricao').value.trim();
+
+            if (!codigoProduto) {
+                mostrarMensagem('Por favor, selecione um produto', 'error');
+                return;
+            }
+
+            if (!quantidade || quantidade <= 0) {
+                mostrarMensagem('Por favor, digite uma quantidade válida', 'error');
+                return;
+            }
+
+            if (!descricao) {
+                mostrarMensagem('Por favor, informe a descrição da movimentação', 'error');
+                return;
+            }
+
+            const produto = estoque.estoque.find(p => p.codigoProduto === codigoProduto);
+            
+            if (tipo === 'saida' && produto.estoque < quantidade) {
+                mostrarMensagem('Estoque insuficiente para realizar a saída', 'error');
+                return;
+            }
+
+            if (tipo === 'entrada') {
+                produto.estoque += quantidade;
+            } else {
+                produto.estoque -= quantidade;
+            }
+
+            const movimentacao = {
+                id: proximoId++,
+                codigoProduto: produto.codigoProduto,
+                descricaoProduto: produto.descricaoProduto,
+                tipo: tipo,
+                quantidade: quantidade,
+                descricao: descricao,
+                estoqueResultante: produto.estoque,
+                data: new Date().toLocaleString('pt-BR')
+            };
+
+            movimentacoes.unshift(movimentacao);
+            
+            mostrarMensagem(
+                `Movimentação realizada! Estoque atual: ${produto.estoque} unidades`,
+                'success'
+            );
+
+            atualizarEstoqueAtual();
+            exibirHistorico();
+            limparFormulario();
+        }
+
+        function mostrarMensagem(texto, tipo) {
+            const mensagemDiv = document.getElementById('mensagem');
+            const cor = tipo === 'success' ? 'red' : 'red';
+            mensagemDiv.innerHTML = `
+                <div class="bg-${cor}-50 border-l-4 border-${cor}-500 text-${cor}-700 p-3 rounded-lg text-sm">
+                    ${texto}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                mensagemDiv.innerHTML = '';
+            }, 4000);
+        }
+
+        function exibirHistorico() {
+            const historicoDiv = document.getElementById('historico');
+            
+            if (movimentacoes.length === 0) {
+                historicoDiv.innerHTML = '<p class="text-gray-500 text-center py-8 text-sm">Nenhuma movimentação realizada ainda.</p>';
+                return;
+            }
+
+            let html = '';
+            movimentacoes.forEach(mov => {
+                const cor = 'red';
+                html += `
+                    <div class="bg-gradient-to-r from-${cor}-50 to-white p-4 rounded-lg border-l-4 border-${cor}-500 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span class="font-bold text-gray-800 text-sm">${mov.tipo.toUpperCase()} #${mov.id}</span>
+                                <span class="text-gray-600 text-xs ml-2">- ${mov.descricaoProduto}</span>
+                            </div>
+                            <span class="bg-${cor}-600 text-white text-xs px-2 py-1 rounded-full font-semibold">${mov.quantidade} un</span>
+                        </div>
+                        <div class="text-xs text-gray-600 mb-2">${mov.descricao}</div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-500">${mov.data}</span>
+                            <span class="font-semibold text-${cor}-700">Estoque: ${mov.estoqueResultante}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            historicoDiv.innerHTML = html;
+        }
+
+        function limparFormulario() {
+            document.getElementById('quantidade').value = '';
+            document.getElementById('descricao').value = '';
+        }
+
+        document.getElementById('produto').addEventListener('change', atualizarEstoqueAtual);
+
+        carregarProdutos();
+        exibirHistorico();
+    </script>
+</body>
+</html>
